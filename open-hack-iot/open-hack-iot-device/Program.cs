@@ -1,12 +1,49 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace open_hack_iot_device
+using System;
+
+namespace Microsoft.Azure.Devices.Client.Samples
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        // String containing Hostname, Device Id & Device Key in one of the following formats:
+        //  "HostName=<iothub_host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>"
+        //  "HostName=<iothub_host_name>;CredentialType=SharedAccessSignature;DeviceId=<device_id>;SharedAccessSignature=SharedAccessSignature sr=<iot_host>/devices/<device_id>&sig=<token>&se=<expiry_time>";
+
+        // For this sample either
+        // - pass this value as a command-prompt argument
+        // - set the IOTHUB_DEVICE_CONN_STRING environment variable 
+        // - create a launchSettings.json (see launchSettings.json.template) containing the variable
+        private static string s_deviceConnectionString ="HostName=bko-iothack-hub.azure-devices.net;DeviceId=bko-turnstile;SharedAccessKey=UPZbwFeBswG+7DIBJQnky6b24YPw4diSuSm75Z2VovI=";
+
+        // Select one of the following transports used by DeviceClient to connect to IoT Hub.
+        private static TransportType s_transportType = TransportType.Amqp;
+        //private static TransportType s_transportType = TransportType.Mqtt;
+        //private static TransportType s_transportType = TransportType.Http1;
+        //private static TransportType s_transportType = TransportType.Amqp_WebSocket_Only;
+        //private static TransportType s_transportType = TransportType.Mqtt_WebSocket_Only;
+
+        public static int Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            if (string.IsNullOrEmpty(s_deviceConnectionString) && args.Length > 0)
+            {
+                s_deviceConnectionString = args[0];
+            }
+
+            DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(s_deviceConnectionString, s_transportType);
+
+            if (deviceClient == null)
+            {
+                Console.WriteLine("Failed to create DeviceClient!");
+                return 1;
+            }
+
+            var sample = new MessageSample(deviceClient);
+            sample.RunSampleAsync().GetAwaiter().GetResult();
+
+            Console.WriteLine("Done.\n");
+            return 0;
         }
     }
 }
